@@ -65,4 +65,4 @@ TO DO
 - G. James, D. Witten, T. Hastie and R. Tibshirani, *An Introduction to Statistical Learning*, Springer (2017).
 - T. Hastie, R. Tibshirani and J. Friedman, *The Elements of Statistical Learning: Data mining, Inference, and Prediction*, Springer (2017).
 - M.N. Magalhães and A.C. Pedroso de Lima, *Noções de Probabilidade e Estatística*, Edusp (2023).
-- R. A. Fisher, "Iris", UCI Machine Learning Repository (1936).
+- R. A. Fisher, ["Iris", UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/53/iris) (1936).
