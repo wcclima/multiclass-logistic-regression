@@ -56,9 +56,40 @@ Description of the `logistic_regression` module architecture.
 
 ## 5 - Results
 
-To test and illustrate the `LogisticRegressor`, we use the well-known [*Iris dataset*](https://en.wikipedia.org/wiki/Iris_flower_data_set). 
+To test and illustrate the `LogisticRegressor` module, we use the well-known [*Iris dataset*](https://en.wikipedia.org/wiki/Iris_flower_data_set). 
 
-TO DO
+### 5.1 - Brief exploratory data analysis
+
+We first make pairwise scatter plots of all the predictors in the dataset in order to visualise the clustering of the species in the 2d parameter spaces. 
+
+<br><br>
+<div align="center">
+
+![plot](https://github.com/wcclima/multiclass-logistic-regression/blob/main/images/pairwise_plot.png)
+
+*Figure 1: *
+
+</div>
+<br><br>
+We make a triplewise scatter plots of all the predictors in the dataset in order to visualise the clustering of the species in the 3d parameter spaces. The aim is to verify is any further separation between the classes happens with respect to the 2d plots. 
+
+<br><br>
+<div align="center">
+  
+![plot](images/triplewise_plot.png)
+
+*Figure 2: *
+
+</div>
+<br><br>
+
+The plots above allow us to infer the following.
+
+ - The pairwise plot of the features indicates that with any two features the `Iris-setosa` can be clearly separated from the other two species.
+ - The distribution plots show that the `Iris-setosa` and `Iris-setosa` species have a better contrast for the `petal width` and `petal length` features. However, these features seem to be linearly correlated.
+ - The distribution plot for `sepal length` show moderated contrastc between the three species. Indeed, the 3d plot `sepal length` vs. `petal length` vs. `petal width` seems to show good separation between the species.
+
+### 5.2 - Logistic regression 
 
 ## 6 - Bibliography
 
