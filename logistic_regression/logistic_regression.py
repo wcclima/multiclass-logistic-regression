@@ -3,7 +3,7 @@ import numpy as np
 from ._utilities import check_same_number_of_rows
 from ._utilities import softmax, one_hot_encoder
 from ._optimiser import NewtonOptimiser, hessian_func
-from scipy.special import erf
+from scipy.stats import chi2
 from prettytable import PrettyTable
 
 
@@ -40,10 +40,10 @@ class LogisticRegressor(object):
             The maximum number of iterations used to 
             stop the optimisation method.
 
-        intercept_ (float): 
-            The intercept coefficient.
+        intercept_ (ndarray): array of shape (n_classes,) 
+            The intercept coefficient estimators.
 
-        coef_ (ndarray): array of shape (p_predictors,).
+        coef_ (ndarray): array of shape (n_predictors, n_classes).
             The predictor's coefficient estimators.
 
         classes_ (ndarray): array of shape (n_classes,) 
@@ -140,9 +140,8 @@ class LogisticRegressor(object):
             sample_weight (np.ndarray, default = None): array of shape (n_samples,) 
                 The weight of each sample.
 
-        Returns:
-            self:
-                The fitted estimator.
+        Returns (self):
+            The fitted estimator.
         """
 
         check_same_number_of_rows(X, y)
@@ -190,8 +189,8 @@ class LogisticRegressor(object):
             X (np.ndarray): array of shape (n_samples, n_predictors).
                 The predictor's data.
 
-        Returns:
-            np.ndarray: array of shape (n_samples,).
+        Returns (ndarray):
+            Array of shape (n_samples,).
         """
         
         n_samples = X.shape[0]
@@ -216,8 +215,8 @@ class LogisticRegressor(object):
             X (np.ndarray): array of shape (n_samples, n_predictors).
                 The predictor's data.
 
-        Returns:
-            np.ndarray: array of shape (n_samples,).
+        Returns (ndarray):
+            Array of shape (n_samples,).
         """
         
         n_samples = X.shape[0]
@@ -234,7 +233,7 @@ class LogisticRegressor(object):
             X: np.ndarray, 
             y: np.ndarray, 
             sample_weight: np.ndarray = None
-            ) -> None:
+            ) -> PrettyTable:
         """
         Prints the prevalence, accuracy, precision and true/false 
         negative/positive rates.
@@ -248,6 +247,9 @@ class LogisticRegressor(object):
 
             sample_weight (np.ndarray, default = None): array of shape (n_samples,) 
                 The weight of each sample.
+
+        Returns (PrettyTable):
+            The score table.
         """
 
         check_same_number_of_rows(X, y)
@@ -281,16 +283,15 @@ class LogisticRegressor(object):
         score_table.add_row(["false positive rate"] + [value for value in np.around(fp/p, 4)] + [" --- "])
         score_table.add_row(["accuracy"] + self.n_classes_*[" --- "] + [np.around(tp.sum()/n_samples, 4)])
 
-        print(score_table)
 
-        return
+        return score_table
 
     def confusion_matrix(
             self, 
             X: np.ndarray, 
             y: np.ndarray, 
             sample_weight: np.ndarray = None
-            ) -> None:
+            ) -> PrettyTable:
         """
         Prints the confusion matrix comparing the predicted and the 
         actual classes for the binary classification problem.
@@ -304,6 +305,9 @@ class LogisticRegressor(object):
 
             sample_weight (np.ndarray, default = None): array of shape (n_samples,) 
                 The weight of each sample.
+
+        Returns (PrettyTable):
+            The matrix confusion table.
         """
 
         check_same_number_of_rows(X, y)
@@ -319,7 +323,6 @@ class LogisticRegressor(object):
         X_ = np.concatenate((np.ones((n_samples, 1)),X), axis=1)
         proba_hat = softmax(X_ @ b_hat)
         y_pred = self.classes_[np.argmax(proba_hat, axis = 1)]
-        print(y_pred.size)
 
         confusion_matrix = PrettyTable(["***"] + ["predicted " + str(label) for label in self.classes_])
 
@@ -333,10 +336,8 @@ class LogisticRegressor(object):
                 row.append(count)
 
             confusion_matrix.add_row(row)
-            
-        print(confusion_matrix)
-            
-        return
+                        
+        return confusion_matrix
 
     def get_params(self) -> dict:
         """
@@ -358,13 +359,15 @@ class LogisticRegressor(object):
             X: np.ndarray, 
             y: np.ndarray, 
             sample_weight: np.ndarray = None
-            ) -> None:
+            ) -> PrettyTable:
         """
-            Prints a report on the statistical analysis 
-            for each of the estimators's coefficients. 
-            It gives the standard error, the z-statistics and 
-            p-value to reject the hypothesis that the coefficient 
-            is null assuming all the other coefficients are fixed.
+        Prints a report on the statistical analysis 
+        for each of the estimators's coefficients. 
+        It gives the standard error, the z-statistics and 
+        p-value to reject the hypothesis that the coefficients
+        corresponding to a given predictor is null for all 
+        classes, assuming all the other coefficients 
+        are fixed.
 
         Keyword arguments:
             X (np.ndarray): array of shape (n_samples, n_predictors).
@@ -375,11 +378,14 @@ class LogisticRegressor(object):
 
             sample_weight (np.ndarray, default = None): array of shape (n_samples,) 
                 The weight of each sample.
+
+        Returns (PrettyTable):
+            The table with the regression report.
         """
 
         check_same_number_of_rows(X, y)
 
-        n_samples = y.shape[0]
+        n_samples, n_predictors = X.shape
         
         if sample_weight:
             w = sample_weight
@@ -392,63 +398,65 @@ class LogisticRegressor(object):
         else:
             X_ = X
             b_hat = self.coef_
+            
 
         H_inv = np.linalg.inv(hessian_func(X_, w, b_hat))
 
-        std_errors = np.sqrt(np.diag(H_inv))
+        std_errors = np.sqrt(np.diag(H_inv)/n_samples)
         z_stats = b_hat[:, : self.n_classes_ - 1].flatten('F')/std_errors
-        z_stats = np.reshape(z_stats, (b_hat.shape[0], b_hat.shape[1] - 1), 'F')
-        p_values = 1 - erf(np.abs(z_stats)/np.sqrt(2.))
+
+        std_errors = np.append(std_errors, np.zeros(n_predictors + self.fit_intercept))
+        z_stats = np.append(z_stats, np.zeros(n_predictors + self.fit_intercept))
+
+        w_stats = np.zeros(n_predictors + self.fit_intercept)
+        for i in range(n_predictors + self.fit_intercept):
+            beta_hat = b_hat[i, : self.n_classes_ - 1].reshape(-1,1)
+            Sigma_i = np.zeros((self.n_classes_ - 1, self.n_classes_ - 1))
+            for k in range(self.n_classes_ - 1):
+                for l in range(self.n_classes_ - 1):
+                    Sigma_i[k,l] = H_inv[k*(n_predictors + self.fit_intercept) + i, l*(n_predictors + self.fit_intercept) + i]/n_samples
+         
+            w_stats[i] = beta_hat.T @ np.linalg.inv(Sigma_i) @ beta_hat
+
+        p_values = 1 - chi2._cdf(w_stats, self.n_classes_ - 1)
 
         report_table = PrettyTable(["*****", "coefficient", "std. error", "z-statistics", "p-value"])
         if self.fit_intercept:
+            idx_ = np.array([k*(n_predictors + 1) for k in range(self.n_classes_)])
             report_table.add_row(
                 ["intercept", 
-                 np.round(self.intercept_[: self.n_classes_ - 1], 4), 
-                 np.round(std_errors[0], 4),
-                 np.round(z_stats[0, : self.n_classes_ - 1], 4),
-                 np.round(p_values[0, : self.n_classes_ - 1], 4)
+                 np.round(self.intercept_[: self.n_classes_], 4), 
+                 np.round(std_errors[idx_], 4),
+                 np.round(z_stats[idx_], 4),
+                 np.round(p_values[0], 4)
                 ]
             )
 
-            for i, (coef, std_err, z, p_value) in enumerate(
-                zip(
-                    self.coef_[:, :self.n_classes_ - 1], 
-                    std_errors[1:], 
-                    z_stats[1:, :self.n_classes_ - 1], 
-                    p_values[:, :self.n_classes_ - 1]
-                    )
-                ):
-                
+            for i in range(n_predictors):
+                idx_ = np.array([k*(n_predictors + 1) + i + 1 for k in range(self.n_classes_)])
                 report_table.add_row(
                     [f"coef_{i + 1}", 
-                    np.round(coef, 4), 
-                    np.round(std_err, 4),
-                    np.round(z, 4),
-                    np.round(p_value, 4)
+                    np.round(self.coef_[i, : self.n_classes_], 4), 
+                    np.round(std_errors[idx_], 4),
+                    np.round(z_stats[idx_], 4),
+                    np.round(p_values[i], 4)
                     ]
                 )
+
 
         else:
             report_table.add_row([f"intercept", np.zeros(self.n_classes_ - 1), "----", "----", "----"])
 
-            for i, (coef, std_err, z, p_value) in enumerate(
-                zip(
-                    self.coef_[:, :self.n_classes_ - 1], 
-                    std_errors, z_stats[:, :self.n_classes_ - 1], 
-                    p_values[:, :self.n_classes_ - 1]
-                    )
-                ):
-
+            for i in range(n_predictors):
+                idx_ = np.array([k*n_predictors + i for k in range(self.n_classes_)])
                 report_table.add_row(
                     [f"coef_{i + 1}", 
-                    np.round(coef, 4), 
-                    np.round(std_err, 4),
-                    np.round(z, 4),
-                    np.round(p_value, 4)
+                    np.round(self.coef_[i, : self.n_classes_], 4), 
+                    np.round(std_errors[idx_], 4),
+                    np.round(z_stats[idx_], 4),
+                    np.round(p_values[i], 4)
                     ]
                 )
             
-        print(report_table)
 
-        return
+        return report_table
