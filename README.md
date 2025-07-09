@@ -41,7 +41,7 @@ Description of the `logistic_regression` module architecture.
 - The `LogisticRegressor` class:
   - performs logistic regression in multiclass problems by maximising the log-likelyhood function using the Newton-Raphson method assuming that the probabilities are modelled by the softmax function;
   - predicts the estimated probabilities for all classes for samples in the predictor values $X$;
-  - predicts the class labels for samples in the predictor values $X$;
+  - predicts the class labels for samples in the predictor values $X$, with the predicted label corresponding to the one with the highest probability;
   - computes a number of classification scores and produces the confusion matrix for all classes;
   - produces a statistical analysis of the coefficient estimates;
   - has the following methods:
@@ -76,10 +76,10 @@ We first make pairwise scatter plots of all the predictors in the dataset in ord
 *Figure 1: Pairwsie plot of the Iris Dataset features showing the clustering of each species.*
 
 </div>
-<br><br>
+<br>
 We make a triplewise scatter plots of all the predictors in the dataset in order to visualise the clustering of the species in the 3d parameter spaces. The aim is to verify is any further separation between the classes happens with respect to the 2d plots. 
 
-<br><br>
+<br>
 <div align="center">
   
 ![plot](images/triplewise_plot.png)
@@ -87,7 +87,7 @@ We make a triplewise scatter plots of all the predictors in the dataset in order
 *Figure 2: Triplewise plot of the Iris Dataset features showing the clustering of each species.*
 
 </div>
-<br><br>
+<br>
 
 The plots above allow us to infer the following.
 
@@ -99,7 +99,9 @@ The plots above allow us to infer the following.
 
 **Model with two predictors:** We first consider a model with only the `petal width` and `petal length` features as predictors. Below we have the results of the model in the 2d predictor space, confusion matrix, scores and regression report.
 
-<br><br>
+Using the methods `fit` and `predict`, the model predicts the class labels from the predictor samples $X$ by taking the class with highest probability.
+
+<br>
 <div align="center">
   
 ![plot](images/classification_2d.png)
@@ -107,7 +109,11 @@ The plots above allow us to infer the following.
 *Figure 3: `petal width` vs. `petal length` plot for the predicted species, with the decision boudaries.*
 
 </div>
-<br><br>
+<br>
+
+Using the method `confusion_matrix`, the model returns the confusion matrix for the classification problem.
+
+<br>
 
 <div align="center">
 
@@ -120,8 +126,11 @@ The plots above allow us to infer the following.
 *Table 1: Confusion matrix with `petal width` and `petal length` features as predictors.*
 
 </div>
+<br>
 
-<br><br>
+Using the method `scores`, the model returns the a table with a number of classification scores.
+
+<br>
 
 <div align="center">
 
@@ -139,8 +148,11 @@ The plots above allow us to infer the following.
 *Table 2: Scores with `petal width` and `petal length` features as predictors.*
 
 </div>
-<br><br>
+<br>
 
+Using the method `regression_report`, the model returns a regression report on the coefficients for each predictor. They are ordered as in the `n_class_` feature.
+
+<br>
 <div align="center">
 
 |           |          coefficient           |          std. error         |          z-statistics          | p-value |
@@ -152,11 +164,11 @@ The plots above allow us to infer the following.
 *Table 3: Regression report with `petal width` and `petal length` features as predictors.*
 
 </div>
-<br><br>
+<br>
 
 **Model with three predictors:** We consider a model with the `petal width`, `petal length` and `sepal width` features as predictors. Below we have the results of the model in the 3d predictor space, confusion matrix, scores and regression report.
 
-<br><br>
+<br>
 <div align="center">
   
 ![plot](images/classification_3d.png)
@@ -164,7 +176,7 @@ The plots above allow us to infer the following.
 *Figure 4: `petal width` vs. `petal length` vs. `sepal width` plot for the predicted species, with the decision boudaries.*
 
 </div>
-<br><br>
+<br>
 
 <div align="center">
 
@@ -178,7 +190,7 @@ The plots above allow us to infer the following.
 
 </div>
 
-<br><br>
+<br>
 
 <div align="center">
 
@@ -195,7 +207,7 @@ The plots above allow us to infer the following.
 *Table 5: Scores with `petal width`, `petal length` and `sepal width` features as predictors.*
 
 </div>
-<br><br>
+<br>
 
 <div align="center">
 
@@ -209,7 +221,7 @@ The plots above allow us to infer the following.
 *Table 6: Regression report with `petal width`, `petal length` and `sepal width` features as predictors.*
 
 </div>
-<br><br>
+<br>
 
 ### 5.3 - Conclusions
 
